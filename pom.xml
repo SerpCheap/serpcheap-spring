@@ -6,7 +6,7 @@
 
   <groupId>cheap.serp</groupId>
   <artifactId>serpcheap-spring-boot-starter</artifactId>
-  <version>0.1.0</version> <!-- x-release-please-version -->
+  <version>0.2.0</version> <!-- x-release-please-version -->
   <packaging>jar</packaging>
 
   <name>serpcheap-spring-boot-starter</name>
