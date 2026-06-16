@@ -39,4 +39,10 @@ public class SerpCheapAutoConfiguration {
   public SerpCheapClient serpCheapClient(SerpCheap serpCheap) {
     return new SerpCheapClient(serpCheap);
   }
+
+  @Bean
+  @ConditionalOnMissingBean
+  public SerpCheapCacheKeyGenerator serpCheapCacheKeyGenerator() {
+    return new SerpCheapCacheKeyGenerator();
+  }
 }

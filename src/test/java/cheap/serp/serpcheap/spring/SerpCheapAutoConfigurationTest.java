@@ -2,6 +2,8 @@ package cheap.serp.serpcheap.spring;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import cheap.serp.serpcheap.RankParams;
+import cheap.serp.serpcheap.ScrapeParams;
 import cheap.serp.serpcheap.SearchParams;
 import cheap.serp.serpcheap.SerpCheap;
 import com.sun.net.httpserver.HttpServer;
@@ -98,6 +100,48 @@ class SerpCheapAutoConfigurationTest {
 
             client.raw().search(SearchParams.of("shoes"));
             assertThat(mock.hits()).isEqualTo(2);
+          });
+    }
+  }
+
+  @Test
+  void distinctOptionsDoNotCollide() throws IOException {
+    try (Mock mock = Mock.start(SEARCH_JSON)) {
+      runner.withUserConfiguration(CachingConfig.class)
+          .withPropertyValues("serpcheap.api-key=k", "serpcheap.base-url=" + mock.baseUrl(), "serpcheap.max-retries=0")
+          .run(ctx -> {
+            SerpCheapClient client = ctx.getBean(SerpCheapClient.class);
+            client.search(SearchParams.builder().q("shoes").hl("pt").build());
+            client.search(SearchParams.builder().q("shoes").hl("de").build());
+            assertThat(mock.hits()).isEqualTo(2);
+          });
+    }
+  }
+
+  @Test
+  void cachesScrapeAndRank() throws IOException {
+    var scrape = "{\"url\":\"https://example.test\",\"title\":\"Example\"}";
+    try (Mock mock = Mock.start(scrape)) {
+      runner.withUserConfiguration(CachingConfig.class)
+          .withPropertyValues("serpcheap.api-key=k", "serpcheap.base-url=" + mock.baseUrl(), "serpcheap.max-retries=0")
+          .run(ctx -> {
+            SerpCheapClient client = ctx.getBean(SerpCheapClient.class);
+            client.scrape(ScrapeParams.of("https://example.test"));
+            client.scrape(ScrapeParams.of("https://example.test"));
+            assertThat(mock.hits()).isEqualTo(1);
+          });
+    }
+
+    var rank = "{\"url\":\"nike.test\",\"search\":\"shoes\",\"gl\":\"us\",\"match_type\":\"domain\","
+        + "\"pages_scanned\":1,\"found\":true,\"rank\":1,\"matches\":[],\"organic\":[]}";
+    try (Mock mock = Mock.start(rank)) {
+      runner.withUserConfiguration(CachingConfig.class)
+          .withPropertyValues("serpcheap.api-key=k", "serpcheap.base-url=" + mock.baseUrl(), "serpcheap.max-retries=0")
+          .run(ctx -> {
+            SerpCheapClient client = ctx.getBean(SerpCheapClient.class);
+            client.rank(RankParams.builder().url("nike.test").q("shoes").build());
+            client.rank(RankParams.builder().url("nike.test").q("shoes").build());
+            assertThat(mock.hits()).isEqualTo(1);
           });
     }
   }

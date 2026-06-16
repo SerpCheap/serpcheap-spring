@@ -27,17 +27,17 @@ public class SerpCheapClient {
     return delegate;
   }
 
-  @Cacheable(cacheNames = "serpcheap", key = "'search:' + #params.q + '|' + #params.gl + '|' + #params.page")
+  @Cacheable(cacheNames = "serpcheap", keyGenerator = "serpCheapCacheKeyGenerator")
   public SearchResponse search(SearchParams params) {
     return delegate.search(params);
   }
 
-  @Cacheable(cacheNames = "serpcheap", key = "'scrape:' + #params.url")
+  @Cacheable(cacheNames = "serpcheap", keyGenerator = "serpCheapCacheKeyGenerator")
   public ScrapeResponse scrape(ScrapeParams params) {
     return delegate.scrape(params);
   }
 
-  @Cacheable(cacheNames = "serpcheap", key = "'rank:' + #params.url + '|' + #params.q")
+  @Cacheable(cacheNames = "serpcheap", keyGenerator = "serpCheapCacheKeyGenerator")
   public RankResponse rank(RankParams params) {
     return delegate.rank(params);
   }
